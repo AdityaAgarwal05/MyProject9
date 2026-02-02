@@ -1,0 +1,42 @@
+name: Build & Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - master # or "main" if your repo uses main
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Install .NET 10 SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # 3. Restore
+      - name: Restore Packages
+        run: dotnet restore "./MyProject9/MyProject9.csproj"
+
+      # 4. Build
+      - name: Build Project
+        run: dotnet build "./MyProject9/MyProject9.csproj" --configuration Release --no-restore
+
+      # 5. Publish app
+      - name: Publish Project
+        run: dotnet publish "./MyProject9/MyProject9.csproj" -c Release -o ./publish
+
+      # 6. Login to Azure using Service Principal
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 7. Deploy to Azure App Service
